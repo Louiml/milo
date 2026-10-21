@@ -31,6 +31,23 @@ const char* operatorName(Op op) {
   }
 }
 
+/// Hand a scope over to a function that is leaving it.
+///
+/// A function closes over the scope it was written in, and that scope
+/// holds the function: the two keep each other alive for ever, and the
+/// scope is never given back. When the function leaves, it takes the scope
+/// with it and the scope lets go of the function, so that neither of them
+/// is kept alive by the other.
+void releaseReturnedFunction(const runtime::Value& value,
+                             const std::shared_ptr<runtime::Environment>& scope) {
+  if (value.kind() != runtime::Value::Kind::MachineFunction) return;
+  auto* function = static_cast<Function*>(value.machineFunction().get());
+  auto closed = function->closure.lock();
+  if (!closed || closed.get() != scope.get()) return;
+  function->keepAlive = closed;
+  scope->release(function->name);
+}
+
 }  // namespace
 
 void Machine::push(runtime::Value value) { stack_.push_back(std::move(value)); }
@@ -181,6 +198,10 @@ runtime::Value Machine::run(const Program& program) {
       }
       case Op::Return: {
         runtime::Value result = pop();
+        // A function that leaves the scope it was written in takes the
+        // scope with it, and the scope lets go of the function, so that
+        // neither of them is kept alive by the other.
+        releaseReturnedFunction(result, frames_.back().env);
         if (frames_.size() == 1) {
           return result;
         }
@@ -347,9 +368,6 @@ runtime::Value Machine::run(const Program& program) {
         // closure is its own.
         auto function = std::make_shared<Function>(*program_->functions[instruction.a]);
         function->closure = frames_.back().env;
-        // The scope that will hold this function keeps the scope it
-        // closes over alive, so that the two do not hold each other up.
-        frames_.back().env->holdClosure(frames_.back().env);
         push(runtime::Value::machineFunction(function));
         break;
       }

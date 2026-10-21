@@ -148,6 +148,8 @@ struct Function {
   /// is usually defined in the scope it closes over, and a strong
   /// reference would make the two hold each other up for ever.
   std::weak_ptr<runtime::Environment> closure;
+  /// The scope, kept alive for a function that has left it.
+  std::shared_ptr<runtime::Environment> keepAlive;
 };
 
 /// A sentence the machine can carry out.

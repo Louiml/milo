@@ -246,11 +246,16 @@ struct FunctionValue {
   /// The scope the function was written in.
   ///
   /// This is a weak reference on purpose. A function is usually defined in
-  /// the scope it closes over, and a strong reference would make the two
-  /// hold each other up for ever, so the scope would never be given back.
-  /// The scope that holds the function keeps it alive for as long as the
-  /// function can be called.
+  /// the scope it closes over, and that scope holds the function: the two
+  /// would keep each other alive for ever, and the scope would never be
+  /// given back.
   std::weak_ptr<Environment> closure;
+  /// The scope, kept alive for a function that has left it.
+  ///
+  /// A function returned out of the scope it was written in still needs
+  /// that scope, so it takes it with it. The scope has let go of the
+  /// function by then, so the two do not hold each other up.
+  std::shared_ptr<Environment> keepAlive;
   std::vector<ast::StmtPtr> body;
   std::shared_ptr<ast::TypeRef> return_type;
 };

@@ -53,26 +53,26 @@ class Environment {
   /// Is this the very same scope as `other`?
   bool is(const Environment* other) const { return this == other; }
 
-  /// Keep a scope alive on behalf of a function that closes over it.
+  /// Let go of everything in this scope.
   ///
   /// A function closes over the scope it was written in, and that scope
-  /// holds the function. The two would keep each other alive for ever, so
-  /// the function's own reference is weak and the scope keeps it alive
-  /// here instead.
-  void holdClosure(std::shared_ptr<Environment> scope) {
-    if (scope) closures_.push_back(std::move(scope));
+  /// holds the function: the two keep each other alive, and the scope is
+  /// never given back. Clearing the scope breaks that, and is safe once
+  /// the scope can no longer be reached by name.
+  void clear() {
+    values_.clear();
   }
+
+  /// Let go of one name.
+  ///
+  /// A function that leaves the scope it was written in takes the scope
+  /// with it, and the scope lets go of the function, so that the two do
+  /// not hold each other up.
+  void release(const std::string& name) { values_.erase(name); }
 
  private:
   std::shared_ptr<Environment> parent_;
   std::unordered_map<std::string, Value> values_;
-  /// The scopes that the functions in this scope close over.
-  ///
-  /// A function closes over the scope it was written in, and that scope
-  /// holds the function: the two would keep each other alive for ever.
-  /// The scope holds on to the closed-over scope here instead, so that the
-  /// function's own reference can be weak.
-  std::vector<std::shared_ptr<Environment>> closures_;
   bool allow_redeclaration_ = false;
 };
 

@@ -113,6 +113,23 @@ bool valuesCompare(const Value& lhs, const Value& rhs, int& result) {
   return false;
 }
 
+/// Hand a scope over to a function that is leaving it.
+///
+/// A function closes over the scope it was written in, and that scope
+/// holds the function: the two keep each other alive for ever, and the
+/// scope is never given back. When the function leaves, it takes the scope
+/// with it and the scope lets go of the function, so that neither of them
+/// is kept alive by the other.
+void releaseReturnedFunction(const Value& value,
+                             const std::shared_ptr<runtime::Environment>& scope) {
+  if (value.kind() != Value::Kind::Function) return;
+  const auto& function = value.asFunction();
+  auto closed = function->closure.lock();
+  if (!closed || closed.get() != scope.get()) return;
+  function->keepAlive = closed;
+  scope->release(function->name);
+}
+
 }  // namespace
 
 Interpreter::Interpreter() : globals_(std::make_shared<runtime::Environment>()) {
@@ -582,9 +599,11 @@ Value Interpreter::call(Value callee, const std::vector<Value>& args,
       for (const ast::StmtPtr& statement : function->body) {
         result = exec(*statement, scope);
       }
+      releaseReturnedFunction(result, scope);
       --depth_;
       return result;
     } catch (const ReturnSignal& signal) {
+      releaseReturnedFunction(signal.value, scope);
       --depth_;
       return signal.value;
     } catch (...) {
