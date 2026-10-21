@@ -143,7 +143,11 @@ struct Function {
   /// The instructions.
   Chunk chunk;
   /// The scope the function was defined in.
-  std::shared_ptr<runtime::Environment> closure;
+  ///
+  /// A weak reference, for the same reason as in the runtime: a function
+  /// is usually defined in the scope it closes over, and a strong
+  /// reference would make the two hold each other up for ever.
+  std::weak_ptr<runtime::Environment> closure;
 };
 
 /// A sentence the machine can carry out.

@@ -243,7 +243,14 @@ class Value {
 struct FunctionValue {
   std::string name;
   std::vector<std::string> params;
-  std::shared_ptr<Environment> closure;
+  /// The scope the function was written in.
+  ///
+  /// This is a weak reference on purpose. A function is usually defined in
+  /// the scope it closes over, and a strong reference would make the two
+  /// hold each other up for ever, so the scope would never be given back.
+  /// The scope that holds the function keeps it alive for as long as the
+  /// function can be called.
+  std::weak_ptr<Environment> closure;
   std::vector<ast::StmtPtr> body;
   std::shared_ptr<ast::TypeRef> return_type;
 };

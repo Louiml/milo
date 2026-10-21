@@ -19,6 +19,14 @@ const Value* Environment::findLocal(const std::string& name) const {
 }
 
 void Environment::define(const std::string& name, Value value) {
+  // A function closes over a scope. This scope is the one that holds the
+  // function, so it takes over the job of keeping that scope alive.
+  if (value.kind() == Value::Kind::Function) {
+    const auto& function = value.asFunction();
+    if (auto scope = function->closure.lock()) {
+      closures_.push_back(std::move(scope));
+    }
+  }
   values_[name] = std::move(value);
 }
 

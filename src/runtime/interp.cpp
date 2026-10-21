@@ -565,7 +565,7 @@ Value Interpreter::call(Value callee, const std::vector<Value>& args,
     }
     const auto& function = callee.asFunction();
 
-    auto scope = std::make_shared<runtime::Environment>(function->closure);
+    auto scope = std::make_shared<runtime::Environment>(function->closure.lock());
     for (std::size_t i = 0; i < function->params.size(); ++i) {
       if (i < args.size()) {
         scope->define(function->params[i], args[i]);

@@ -347,6 +347,9 @@ runtime::Value Machine::run(const Program& program) {
         // closure is its own.
         auto function = std::make_shared<Function>(*program_->functions[instruction.a]);
         function->closure = frames_.back().env;
+        // The scope that will hold this function keeps the scope it
+        // closes over alive, so that the two do not hold each other up.
+        frames_.back().env->holdClosure(frames_.back().env);
         push(runtime::Value::machineFunction(function));
         break;
       }
@@ -406,7 +409,7 @@ void Machine::enterFunction(const std::shared_ptr<Function>& function,
   }
 
   Frame frame;
-  frame.env = std::make_shared<runtime::Environment>(function->closure);
+  frame.env = std::make_shared<runtime::Environment>(function->closure.lock());
   for (std::size_t i = 0; i < function->params.size() && i < args.size(); ++i) {
     frame.env->define(function->params[i], args[i]);
   }
