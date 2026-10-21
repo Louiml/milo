@@ -420,7 +420,7 @@ mpm install --offline                   # install from the cache alone
 4. **Boring semantics.** No hidden metaprogramming, no implicit copies.
 
 The full reasoning, including the trade-offs we rejected, is in
-[`docs/spec/language-spec-v0.1.md`](docs/spec/language-spec-v0.1.md).
+[`docs/spec/language-spec-v0-1.md`](docs/spec/language-spec-v0-1.md).
 
 ## Honest limitations
 

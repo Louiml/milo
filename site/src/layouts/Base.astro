@@ -9,7 +9,7 @@ interface Props {
 const { title = 'Milo', description = 'A programming language for AI and data work.' } = Astro.props;
 
 const reference = await getCollection('reference');
-const spec = reference.find((entry) => entry.id.endsWith('language-spec-v0.1'));
+const spec = reference.find((entry) => entry.id.endsWith('language-spec-v0-1'));
 const roadmap = reference.find((entry) => entry.id === 'roadmap');
 
 // The site is published under a path, so every link carries it.

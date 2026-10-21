@@ -104,4 +104,4 @@ print greet("world")
 - [Tensors and models](./tensors-and-models.md) — reading and writing models.
 - [Training a model](./training.md) — the training loop.
 - [The command line](./the-command-line.md) — everything `milo` can do.
-- [The specification](../spec/language-spec-v0.1.md) — the exact semantics.
+- [The specification](../../../../docs/spec/language-spec-v0-1.md) — the exact semantics.

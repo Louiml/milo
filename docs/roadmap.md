@@ -6,7 +6,7 @@ order: 20
 ---
 # Milo — Roadmap
 
-Last updated: 2026-10-21. Companion to [`spec/language-spec-v0.1.md`](./spec/language-spec-v0.1.md).
+Last updated: 2026-10-21. Companion to [`spec/language-spec-v0-1.md`](./spec/language-spec-v0-1.md).
 
 ## How to read this
 

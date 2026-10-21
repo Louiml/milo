@@ -22,7 +22,16 @@ const guidesBase = resolve(repoRoot, 'site', 'src', 'content', 'guides');
 function remarkMiloLinks() {
   /** @param {{url: string}} node */
   const rewrite = (node, filePath) => {
-    if (!node.url || !node.url.startsWith('.')) return;
+    if (!node.url) return;
+
+    if (node.url.startsWith('/')) {
+      // A link to a route on the site. It needs the base, because the
+      // site is published under a path.
+      node.url = `${base}${node.url.replace(/^\//, '')}`;
+      return;
+    }
+
+    if (!node.url.startsWith('.')) return;
 
     const target = resolve(dirname(filePath), node.url);
 
@@ -36,25 +45,30 @@ function remarkMiloLinks() {
       parts = relative(guidesBase, target).split(/[\\/]/);
     } else {
       // Something else: serve it as a plain file.
-      node.url = `/${basename(target)}`;
+      node.url = `${base}${basename(target)}`;
       return;
     }
 
     const name = parts.pop() ?? '';
     if (!name.endsWith('.md')) {
       // The grammar, and anything else that is not a page.
-      node.url = `/${name}`;
+      node.url = `${base}${name}`;
       return;
     }
 
+    // The slug has to match the one Astro gives the page, or the link
+    // points at a route that does not exist: lower case, with the
+    // punctuation turned into dashes.
     const slug = name
       .replace(/\.md$/, '')
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/[^\w\s-]/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
 
     parts.push(slug);
-    node.url = `/${collection}/${parts.join('/')}/`;
+    node.url = `${base}${collection}/${parts.join('/')}/`;
   };
 
   return (tree, file) => {
@@ -70,6 +84,34 @@ function remarkMiloLinks() {
         if (node.type === 'link') rewrite(node, filePath);
         for (const value of Object.values(node)) walk(value);
       }
+    };
+    walk(tree);
+  };
+}
+
+/**
+ * Put the base on every link that points at the site.
+ *
+ * The site is published under a path, so a link to `/docs/roadmap/` has to
+ * become `/milo/docs/roadmap/`. This runs as a rehype plugin, after Astro
+ * has turned the relative links in the documentation into routes, so it
+ * sees the final URLs and can put the base on all of them.
+ */
+function rehypeMiloBase() {
+  return (tree) => {
+    const walk = (node) => {
+      if (Array.isArray(node)) {
+        node.forEach(walk);
+        return;
+      }
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'element' && node.tagName === 'a') {
+        const href = node.properties && node.properties.href;
+        if (typeof href === 'string' && href.startsWith('/') && !href.startsWith(base)) {
+          node.properties.href = base + href.replace(/^\//, '');
+        }
+      }
+      if (node.children) walk(node.children);
     };
     walk(tree);
   };
@@ -97,6 +139,7 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: [remarkMiloLinks],
+    rehypePlugins: [rehypeMiloBase],
     shikiConfig: {
       theme: 'github-dark',
       wrap: true,

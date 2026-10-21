@@ -131,6 +131,6 @@ Every golden test runs under both.
 
 ## The whole language
 
-The [specification](../spec/language-spec-v0.1.md) has the exact
-semantics of every construct, and the [grammar](../spec/grammar.md) has the
+The [specification](../../../../docs/spec/language-spec-v0-1.md) has the exact
+semantics of every construct, and the [grammar](../../../../docs/spec/grammar.md) has the
 normative syntax.
