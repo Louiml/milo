@@ -250,21 +250,11 @@ if(MILO_HAVE_PYTHON)
   # The extension module, so that Python can call Milo.
   add_library(milo_extension MODULE src/python/extension.cpp)
   target_include_directories(milo_extension PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-  # The static libraries have to be scanned more than once: the safetensors
-  # library needs the JSON reader, which lives in the core library, and the
-  # core library is listed first. GNU and Clang want a group for that;
-  # the Microsoft linker resolves across the whole command line and does
-  # not need one.
-  if(MSVC)
-    set(MILO_EXTENSION_LIBS
-      milo_python milo_abi milo_runtime milo_safetensors milo_autograd milo_core
-      milo_tensor milo_planner)
-  else()
-    set(MILO_EXTENSION_LIBS
-      $<LINK_GROUP:RESCAN,milo_python,milo_abi,milo_runtime,milo_safetensors,milo_autograd,milo_core,milo_tensor,milo_planner>)
-  endif()
+  # CMake orders the static libraries by their declared dependencies, so
+  # the one that needs another comes first.
   target_link_libraries(milo_extension PRIVATE
-    ${MILO_EXTENSION_LIBS}
+    milo_python milo_abi milo_runtime milo_safetensors milo_autograd milo_core
+    milo_tensor milo_planner
     Python3::Python
     milo_sanitizers
     milo_warnings)
@@ -416,7 +406,10 @@ target_link_libraries(milo_planner PUBLIC milo_headers milo_warnings PRIVATE mil
 # ---------------------------------------------------------------------------
 add_library(milo_safetensors STATIC ${MILO_SAFETENSORS_SOURCES})
 target_include_directories(milo_safetensors PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(milo_safetensors PUBLIC milo_tensor milo_headers milo_warnings
+# The safetensors reader uses the JSON reader from the core library, so
+# that dependency is declared here: the linker has to be told which
+# library comes first.
+target_link_libraries(milo_safetensors PUBLIC milo_core milo_tensor milo_headers milo_warnings
                                     PRIVATE milo_sanitizers)
 
 # ---------------------------------------------------------------------------
