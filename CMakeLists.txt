@@ -247,12 +247,18 @@ if(MILO_HAVE_PYTHON)
     milo_abi
     milo_sanitizers
     milo_warnings)
-  # Python looks for `milo.cp312-win_amd64.pyd`, so the ABI tag needs its
-  # dot; some CMake versions leave it out.
+  # Python looks for `milo.cp312-win_amd64.pyd` on Windows and for
+  # `milo.cpython-312-x86_64-linux-gnu.so` elsewhere; the ABI tag tells
+  # us which is which.
   if(Python3_SOABI MATCHES "^\\.")
-    set(MILO_PY_MODULE_SUFFIX "${Python3_SOABI}.pyd")
+    set(MILO_PY_MODULE_TAG "${Python3_SOABI}")
   else()
-    set(MILO_PY_MODULE_SUFFIX ".${Python3_SOABI}.pyd")
+    set(MILO_PY_MODULE_TAG ".${Python3_SOABI}")
+  endif()
+  if(WIN32)
+    set(MILO_PY_MODULE_SUFFIX "${MILO_PY_MODULE_TAG}.pyd")
+  else()
+    set(MILO_PY_MODULE_SUFFIX "${MILO_PY_MODULE_TAG}.so")
   endif()
   set_target_properties(milo_extension PROPERTIES
     PREFIX ""
