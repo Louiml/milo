@@ -7,6 +7,9 @@ interface Props {
 
 const { current } = Astro.props;
 
+// The site is published under a path, so every link carries it.
+const base = import.meta.env.BASE_URL;
+
 const guides = (await getCollection('guides')).sort(
   (a, b) => a.data.order - b.data.order,
 );
@@ -31,7 +34,7 @@ for (const guide of guides) {
           {items.map((item) => (
             <li>
               <a
-                href={`/guides/${item.id}/`}
+                href={`${base}guides/${item.id}/`}
                 aria-current={current === item.id ? 'page' : undefined}
               >
                 {item.data.title}
@@ -50,7 +53,7 @@ for (const guide of guides) {
         reference.map((item) => (
           <li>
             <a
-              href={`/docs/${item.id}/`}
+              href={`${base}docs/${item.id}/`}
               aria-current={current === item.id ? 'page' : undefined}
             >
               {item.data.title}

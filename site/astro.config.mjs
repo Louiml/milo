@@ -36,14 +36,14 @@ function remarkMiloLinks() {
       parts = relative(guidesBase, target).split(/[\\/]/);
     } else {
       // Something else: serve it as a plain file.
-      node.url = '/' + basename(target);
+      node.url = `/${basename(target)}`;
       return;
     }
 
     const name = parts.pop() ?? '';
     if (!name.endsWith('.md')) {
       // The grammar, and anything else that is not a page.
-      node.url = '/' + name;
+      node.url = `/${name}`;
       return;
     }
 
@@ -81,9 +81,16 @@ function remarkMiloLinks() {
 // collections read the repository's own `docs/` folder, so the spec, the
 // architecture notes and the roadmap are the same files that live in the
 // project.
+//
+// The site is published on GitHub Pages, under the repository's own
+// path, so every link has to carry the base.
+
+/** The path the site is published under. */
+const base = '/milo/';
 
 export default defineConfig({
-  site: 'https://milo-lang.org',
+  site: 'https://louiml.github.io/milo',
+  base,
   trailingSlash: 'ignore',
   build: {
     format: 'directory',
