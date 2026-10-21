@@ -182,10 +182,10 @@ Context::Context() : impl_(std::make_unique<Impl>()) {
   const char* isolated = std::getenv("MILO_PYTHON_ISOLATED");
   const bool wantIsolated = isolated != nullptr && std::strcmp(isolated, "0") != 0;
 
-#if PY_VERSION_HEX >= 0x030D0000
+#if PY_VERSION_HEX >= 0x030D0000 && PY_VERSION_HEX < 0x030E0000
   if (wantIsolated) {
-    // Python 3.13 and later: an isolated sub-interpreter with its own
-    // global state and its own lock.
+    // Python 3.13: an isolated sub-interpreter with its own global state
+    // and its own lock.
     PyInterpreterConfig config;
     PyInterpreterConfig_InitIsolated(&config);
     config.gil_used = 0;
@@ -199,7 +199,7 @@ Context::Context() : impl_(std::make_unique<Impl>()) {
   } else {
     impl_->description = "python (main interpreter)";
   }
-#elif PY_VERSION_HEX >= 0x030C0000
+#elif PY_VERSION_HEX >= 0x030C0000 && PY_VERSION_HEX < 0x030D0000
   if (wantIsolated) {
     // Python 3.12: the same idea, with the older spelling.
     PyInterpreterConfig config = {};
@@ -224,8 +224,9 @@ Context::Context() : impl_(std::make_unique<Impl>()) {
     impl_->description = "python (main interpreter)";
   }
 #else
-  // Before 3.12 a sub-interpreter shares the main one's lock, so the main
-  // interpreter is the only sensible choice.
+  // Before 3.12 a sub-interpreter shares the main one's lock, and from
+  // 3.14 on the configuration API changed again. The main interpreter is
+  // the safe choice on both.
   impl_->description = "python (main interpreter)";
 #endif
 }

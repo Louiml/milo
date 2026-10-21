@@ -304,12 +304,12 @@ PyMethodDef gMethods[] = {
 };
 
 PyType_Slot gSlots[] = {
-    {Py_tp_dealloc, &tensorDealloc},
-    {Py_tp_repr, &tensorRepr},
-    {Py_tp_methods, gMethods},
-    {Py_tp_getset, gGetSet},
-    {Py_bf_getbuffer, &tensorGetBuffer},
-    {Py_bf_releasebuffer, &tensorReleaseBuffer},
+    {Py_tp_dealloc, reinterpret_cast<void*>(&tensorDealloc)},
+    {Py_tp_repr, reinterpret_cast<void*>(&tensorRepr)},
+    {Py_tp_methods, reinterpret_cast<void*>(gMethods)},
+    {Py_tp_getset, reinterpret_cast<void*>(gGetSet)},
+    {Py_bf_getbuffer, reinterpret_cast<void*>(&tensorGetBuffer)},
+    {Py_bf_releasebuffer, reinterpret_cast<void*>(&tensorReleaseBuffer)},
     {0, nullptr},
 };
 
