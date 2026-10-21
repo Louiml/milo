@@ -226,9 +226,11 @@ namespace {
 void finalizeAtExit() {
   std::atexit([] {
     if (!Py_IsInitialized()) return;
-    PyGILState_STATE state = PyGILState_Ensure();
+    // The thread that started Python may already be gone by now, and
+    // Python's own bookkeeping with it. Rather than build a new thread
+    // state at the last moment, the interpreter is finalised without one:
+    // that gives back the memory it holds, which is the point.
     Py_FinalizeEx();
-    PyGILState_Release(state);
   });
 }
 
@@ -312,6 +314,9 @@ bool Context::isAvailable() {
   static const bool available = [] {
     if (Py_IsInitialized() == 0) {
       Py_InitializeEx(0);
+      // This is where the interpreter is started, so this is where it has
+      // to be shut down again.
+      finalizeAtExit();
     }
     return Py_IsInitialized() != 0;
   }();
