@@ -16,6 +16,11 @@ option(MILO_WERROR          "Treat warnings as errors"          OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# The Python extension is a shared object that links the static libraries,
+# so everything has to be built position-independent. Some distributions
+# compile with -fPIE by default, which the linker refuses to put in a
+# shared object.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -167,6 +172,9 @@ if(MILO_NVCC)
       OUTPUT "${cuda_object}"
       COMMAND "${MILO_NVCC}" -std=c++17 -O3 -Xcompiler /utf-8
               -I "${CMAKE_CURRENT_SOURCE_DIR}/src"
+              # The kernel object goes into a static library that the
+              # Python extension links, so it has to be position-independent.
+              -Xcompiler -fPIC
               # nvcc uses the static C runtime by default; the rest of the
               # project uses the dynamic one, and the two cannot be mixed.
               -Xcompiler ${MILO_CUDA_CRT}
