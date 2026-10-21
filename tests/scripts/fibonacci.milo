@@ -1,0 +1,11 @@
+fn fib(n):
+    if n < 2:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+let total = 0
+for i in range(10):
+    total = total + fib(i)
+
+print "the first ten fibonacci numbers add up to"
+print total

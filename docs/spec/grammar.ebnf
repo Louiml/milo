@@ -1,0 +1,224 @@
+(* ===================================================================== *)
+(*  Milo -- concrete syntax, version 0.1                                  *)
+(*  Normative grammar. ISO/IEC 14977 EBNF.                              *)
+(*                                                                       *)
+(*  Notation:                                                           *)
+(*    "x"      terminal (keyword or punctuation); keywords are matched  *)
+(*             case-insensitively, punctuation is exact.                 *)
+(*    A .. B   inclusive range                                            *)
+(*    { x }    zero or more                                               *)
+(*    [ x ]    optional                                                   *)
+(*    x | y    alternation                                                *)
+(*    x , y    concatenation (left-associative unless noted)              *)
+(* ===================================================================== *)
+
+(* --------------------------------------------------------------------- *)
+(*  Lexical                                                              *)
+(* --------------------------------------------------------------------- *)
+
+program         = { statement } , EOF ;
+
+statement       = simple_stmt | compound_stmt ;
+
+simple_stmt     = ( let_stmt
+                   | assign_stmt
+                   | return_stmt
+                   | break_stmt
+                   | continue_stmt
+                   | import_stmt
+                   | expr_stmt
+                   | sentence_stmt
+                   ) , { ";" } , NEWLINE ;
+
+compound_stmt   = if_stmt | while_stmt | for_stmt | fn_stmt
+                 | block
+                 | sentence_block ;
+
+block           = NEWLINE , INDENT , { statement } , DEDENT ;
+
+(* --------------------------------------------------------------------- *)
+(*  Explicit mode                                                        *)
+(* --------------------------------------------------------------------- *)
+
+let_stmt        = "let" , IDENT , [ ":" , type_ref ]
+                 , [ ( "be" | "=" ) , expr ] ;
+
+assign_stmt     = IDENT , "=" , expr
+                 | "set" , IDENT , [ "to" ] , expr ;
+
+return_stmt     = "return" , [ expr ] ;
+break_stmt      = "break" ;
+continue_stmt   = "continue" ;
+
+import_stmt     = "import" , dotted_name , [ "as" , IDENT ]
+                 | "from" , dotted_name , "import" , IDENT , { "," , IDENT } ;
+
+expr_stmt       = expr ;
+
+if_stmt         = "if" , expr , ":" , block
+                 , { "elif" , expr , ":" , block }
+                 , [ "else" , ":" , block ] ;
+
+while_stmt      = "while" , expr , ":" , block ;
+
+for_stmt        = "for" , IDENT , "in" , expr , ":" , block ;
+
+fn_stmt         = ( "fn" | "function" ) , IDENT
+                 , [ "(" , params , ")" ]
+                 , [ "->" , type_ref ]
+                 , ":" , block ;
+
+params          = param , { "," , param } , [ "," ] ;
+param           = IDENT , [ ":" , type_ref ] ;
+
+(* --------------------------------------------------------------------- *)
+(*  Types                                                                *)
+(* --------------------------------------------------------------------- *)
+
+type_ref        = "int" | "float" | "bool" | "str" | "bytes" | "any" | "null"
+                 | "model" | "dataset" | "module"
+                 | tensor_type
+                 | list_type
+                 | dict_type ;
+
+tensor_type     = "tensor" , [ "[" , shape , "]" ] , [ "of" , dtype ] ;
+list_type       = "list" , [ "of" , type_ref ] ;
+dict_type       = "dict" , [ "[" , type_ref , "," , type_ref , "]" ] ;
+
+shape           = dim , { "," , dim } ;
+dim             = INTEGER | "?" ;
+dtype           = "f32" | "f16" | "bf16" | "f64"
+                 | "i8" | "i32" | "i64" | "u8" | "bool" ;
+
+(* --------------------------------------------------------------------- *)
+(*  Expressions                                                          *)
+(* --------------------------------------------------------------------- *)
+
+expr            = or_expr ;
+
+or_expr         = and_expr , { "or" , and_expr } ;
+and_expr        = not_expr , { "and" , not_expr } ;
+not_expr        = "not" , not_expr | cmp_expr ;
+cmp_expr        = add_expr , [ cmp_op , add_expr ] ;
+cmp_op          = "==" | "!=" | "<" | "<=" | ">" | ">=" | "is" ;
+
+add_expr        = mul_expr , { ( "+" | "-" ) , mul_expr } ;
+mul_expr        = unary_expr , { ( "*" | "/" | "//" | "%" ) , unary_expr } ;
+unary_expr      = ( "-" | "+" ) , unary_expr | pow_expr ;
+pow_expr        = postfix_expr , [ "**" , unary_expr ] ;   (* right assoc *)
+postfix_expr    = primary , { call | index | member } ;
+call            = "(" , [ arg_list ] , ")" ;
+arg_list        = arg , { "," , arg } , [ "," ] ;
+arg             = expr | IDENT , "=" , expr ;
+index           = "[" , [ index_args ] , "]" ;
+index_args      = index_arg , { "," , index_arg } ;
+index_arg       = expr | [ expr ] , ":" , [ expr ] , [ ":" , expr ] ;
+member          = "." , IDENT ;
+
+primary         = INTEGER | FLOAT | STRING | "true" | "false" | "null"
+                 | IDENT
+                 | "(" , expr , ")"
+                 | list_lit
+                 | dict_lit ;
+
+list_lit        = "[" , [ expr , { "," , expr } , [ "," ] ] , "]" ;
+dict_lit        = "{" , [ dict_entry , { "," , dict_entry } , [ "," ] ] , "}" ;
+dict_entry      = expr , ":" , expr ;
+
+dotted_name     = IDENT , { "." , IDENT } ;
+
+(* --------------------------------------------------------------------- *)
+(*  Sentence mode (plain English)                                         *)
+(* --------------------------------------------------------------------- *)
+
+(* A sentence is a chain of clauses joined by "and".  Each clause is a   *)
+(* fixed template selected by its leading verb.  Anything after the       *)
+(* template's fixed slots is a list of options.                          *)
+
+sentence_stmt   = sentence , [ sentence_body ] ;
+
+sentence        = clause , { "and" , clause } , [ "." ] ;
+
+sentence_body   = NEWLINE , INDENT , { sentence_item } , DEDENT ;
+sentence_item   = option_line | statement ;
+
+option_line     = { option } , NEWLINE ;
+
+clause          = load_clause
+                 | split_clause
+                 | finetune_clause
+                 | train_clause
+                 | evaluate_clause
+                 | predict_clause
+                 | save_clause
+                 | show_clause
+                 | use_clause
+                 | quantize_clause ;
+
+load_clause     = "load" , kind , path , "as" , IDENT ;
+kind            = "model" | "data" | "dataset" | "weights"
+                 | "tokenizer" | "adapter" ;
+path            = STRING ;
+
+split_clause    = "split" , IDENT , "into" , IDENT , "and" , IDENT
+                 , [ "by" , INTEGER , "percent" ] ;
+
+finetune_clause = "fine-tune" , IDENT , "on" , IDENT ;
+train_clause    = "train" , IDENT , "on" , IDENT ;
+evaluate_clause = "evaluate" , IDENT , "on" , IDENT ;
+predict_clause  = "predict" , IDENT , "on" , IDENT ;
+save_clause     = "save" , IDENT , "to" , path ;
+show_clause     = "show" , IDENT ;
+use_clause      = "use" , "python" , module , "as" , IDENT ;
+module          = STRING | dotted_name ;
+quantize_clause = "quantize" , IDENT , "to" , IDENT ;
+
+(* --- options --------------------------------------------------------- *)
+
+option          = option_plain | option_epochs ;
+option_plain    = [ sep ] , opt_key , [ ( "is" | "=" ) ] , opt_value ;
+option_epochs   = [ sep ] , "for" , INTEGER , "epochs" ;
+
+sep             = "with" | "at" | "via" ;
+
+opt_key         = "using" | "method"
+                 | "rank" | "alpha" | "dropout"
+                 | "batch size" | "epochs" | "learning rate" | "optimizer"
+                 | "precision" | "quantization" | "gradient accumulation"
+                 | "max length" | "warmup steps" | "seed" | "device"
+                 | "shuffle"
+                 | "save" , [ "to" ] ;
+
+opt_value       = INTEGER | FLOAT | STRING | IDENT | "true" | "false" ;
+
+(* A bare word in an option is literal text, not a variable reference.   *)
+(* A line in a sentence block that starts with an option key is an option,*)
+(* even when the key is followed by "=".                                  *)
+
+(* --------------------------------------------------------------------- *)
+(*  Terminals                                                            *)
+(* --------------------------------------------------------------------- *)
+
+IDENT           = ( letter | "_" ) , { letter | digit | "_" } ;
+                (* "fine-tune" is lexed as a single contextual keyword.  *)
+
+INTEGER         = digit , { digit | "_" } | "0x" , hex_digit , { hex_digit | "_" } ;
+FLOAT           = digit , { digit | "_" } , "." , digit , { digit | "_" } , [ exponent ]
+                | digit , { digit | "_" } , exponent ;
+exponent        = ( "e" | "E" ) , [ "+" | "-" ] , digit , { digit } ;
+
+STRING          = '"' , { ? any char except '"' or newline ? | escape } , '"'
+                | "'" , { ? any char except "'" or newline ? | escape } , "'" ;
+escape          = "\\" , ( "\\" | '"' | "'" | "n" | "r" | "t" | "0"
+                          | "x" , hex_digit , hex_digit
+                          | "u" , "{" , hex_digit , { hex_digit } , "}" ) ;
+
+NEWLINE         = end-of-line, significant (not inside brackets, not a
+                  blank or comment-only line) ;
+INDENT          = increase in indentation at start of line ;
+DEDENT          = decrease in indentation at start of line ;
+EOF             = end of input ;
+
+letter          = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z" ;
+digit           = "0" | "1" | ... | "9" ;
+hex_digit       = digit | "a" | ... | "f" | "A" | ... | "F" ;

@@ -1,0 +1,3 @@
+loaded model 'base' from 'fixture.safetensors'
+loaded data 'chats' from 'support_chats.csv'
+split 'chats' into 'train' (90%) and 'test' (10%)

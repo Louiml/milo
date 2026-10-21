@@ -1,0 +1,26 @@
+; Exports for the Milo shared library.
+;
+; The shared library is the one artefact that foreign code links against.
+; Only the C ABI is exported: every C++ symbol stays internal, so the
+; implementation can change without breaking anyone.
+
+EXPORTS
+    milo_abi_version
+    milo_version_string
+    milo_language_version
+    milo_status_to_string
+    milo_last_error
+    milo_clear_error
+    milo_runtime_create
+    milo_runtime_destroy
+    milo_value_kind_of
+    milo_value_is_null
+    milo_value_as_bool
+    milo_value_as_int
+    milo_value_as_float
+    milo_value_as_string
+    milo_value_string_length
+    milo_value_release
+    milo_runtime_check
+    milo_runtime_run
+    milo_runtime_run_and_print

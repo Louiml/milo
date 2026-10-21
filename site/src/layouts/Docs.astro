@@ -1,0 +1,21 @@
+---
+import Base from './Base.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  id: string;
+}
+
+const { title, description, id } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <div class="page">
+    <Sidebar current={id} />
+    <main class="content">
+      <slot />
+    </main>
+  </div>
+</Base>

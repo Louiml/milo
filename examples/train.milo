@@ -1,0 +1,34 @@
+# A training loop.
+#
+# The model is a single linear layer with two weights and a bias. The
+# optimiser is AdamW. The loop computes the loss, works out the
+# gradients, and takes a step.
+#
+#     milo run examples/train.milo
+
+# The random numbers are seeded, so this program always does the same
+# thing.
+seed(7)
+
+let model = linear(3, 2)
+let optimizer = adamw(model.parameters, 0.05)
+
+# One batch of inputs, and what we want the model to say about them.
+let inputs = tensor([[1.0, 2.0, 3.0]])
+let targets = tensor([[0.5, -0.25]])
+
+for step in range(60):
+    let prediction = model(inputs)
+    let loss = mse_loss(prediction, targets)
+
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if step % 20 == 0:
+        print "step " + str(step) + ": loss " + str(loss)
+
+print "the final loss:"
+print loss
+print "the weights:"
+print model.parameters["weight"]

@@ -1,0 +1,25 @@
+[package]
+name = "mpm"
+description = "The Milo package manager"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+name = "mpm"
+path = "src/lib.rs"
+# The crate carries no doctest examples, and rustdoc is not part of every
+# toolchain install; skipping doctests keeps `cargo test` green everywhere.
+doctest = false
+
+[[bin]]
+name = "mpm"
+path = "src/main.rs"
+
+# The C runtime is linked in automatically when it has been built (see
+# build.rs). No Cargo dependencies are used anywhere in this crate, so
+# `cargo build` works with no network access.
+[dependencies]

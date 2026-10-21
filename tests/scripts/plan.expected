@@ -1,0 +1,9 @@
+it fits:
+false
+the trainable parameters:
+29360128
+the suggestions:
+batch_size: 4 -> 2
+gradient_checkpointing: off -> on
+sequence_length: 2048 -> 1024
+quantization: none -> int8

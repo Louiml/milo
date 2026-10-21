@@ -1,0 +1,11 @@
+# Build output
+dist/
+.astro/
+.output/
+
+# Dependencies
+node_modules/
+
+# Editors
+.DS_Store
+*.log

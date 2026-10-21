@@ -1,0 +1,35 @@
+# Tensors, the way Milo sees them.
+#
+# Run with:
+#     milo run examples/tensors.milo
+
+let weights = tensor([1.0, 2.0, 3.0])
+let biases = tensor([0.5, -0.5, 0.25])
+
+print "weights:"
+print weights
+print "biases:"
+print biases
+
+let layer = add(mul(weights, 2.0), biases)
+print "the layer output:"
+print layer
+
+print "its shape:"
+print shape(layer)
+print "its dtype:"
+print dtype(layer)
+
+# A matrix product. [1, 3] x [3, 1] is a [1, 1] matrix.
+let a = reshape(weights, [1, 3])
+let b = reshape(biases, [3, 1])
+let product = matmul(a, b)
+print "the matrix product:"
+print product
+print "its total:"
+print sum(product)
+
+# Softmax turns a row of scores into probabilities.
+let scores = tensor([1.0, 2.0, 3.0])
+print "the softmax:"
+print softmax(scores)

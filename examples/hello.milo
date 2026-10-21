@@ -1,0 +1,2 @@
+# The smallest possible Milo program.
+print "hello, world"

@@ -1,0 +1,11 @@
+let plan = memory_plan(7000000000, hidden = 4096, layers = 32, heads = 32,
+                       batch_size = 4, sequence = 2048, device_memory = 12,
+                       lora = true, lora_rank = 16)
+
+print "it fits:"
+print plan["fits"]
+print "the trainable parameters:"
+print plan["trainable"]
+print "the suggestions:"
+for suggestion in plan["suggestions"]:
+    print suggestion["knob"] + ": " + suggestion["from"] + " -> " + suggestion["to"]

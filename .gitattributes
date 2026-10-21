@@ -1,0 +1,24 @@
+# Keep the line endings in the repository consistent, whatever the
+# platform: text files are stored with Unix endings and checked out with
+# the endings of the platform that checks them out.
+* text=auto eol=lf
+
+# Windows scripts have to keep their carriage returns.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files stay binary.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.safetensors binary
+*.mpkg binary
+*.pyd binary
+*.dll binary
+*.exe binary
+*.lib binary
+*.o binary
+*.obj binary

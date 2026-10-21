@@ -1,0 +1,23 @@
+{
+    "name":  "milo-docs",
+    "type":  "module",
+    "version":  "0.1.0",
+    "private":  true,
+    "description":  "The documentation website for Milo, the language for AI and data work.",
+    "license":  "MIT",
+    "repository":  {
+                       "type":  "git",
+                       "url":  "https://github.com/Louiml/milo"
+                   },
+    "scripts":  {
+                    "dev":  "astro dev",
+                    "build":  "astro build",
+                    "preview":  "astro preview",
+                    "check":  "astro check",
+                    "prebuild":  "node scripts/copy-assets.mjs",
+                    "predev":  "node scripts/copy-assets.mjs"
+                },
+    "dependencies":  {
+                         "astro":  "^5.14.1"
+                     }
+}

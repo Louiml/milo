@@ -1,0 +1,32 @@
+# The explicit style.
+#
+# Same language, same runtime — you simply write it out. When a sentence
+# does not quite say what you mean, this is always available.
+
+fn dot(a: list, b: list) -> float:
+    let total = 0.0
+    for i in range(len(a)):
+        total = total + a[i] * b[i]
+    return total
+
+fn scale(v: list, factor: float) -> list:
+    let out = []
+    for x in v:
+        out = out + [x * factor]
+    return out
+
+let weights = [0.5, 1.5, -2.0]
+let inputs = [2.0, 1.0, 3.0]
+
+let product = dot(weights, inputs)
+print "dot product:"
+print product
+
+print "scaled inputs:"
+print scale(inputs, 2.0)
+
+let squares = []
+for i in range(5):
+    squares = squares + [i * i]
+print "squares:"
+print squares

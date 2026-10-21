@@ -1,0 +1,17 @@
+load model "fixture.safetensors" as base
+load data "support_chats.csv" as chats
+
+split chats into train and test by 90 percent
+
+fine-tune base on train
+    using lora with rank 16
+    precision is bf16
+    batch size 4
+    epochs 3
+    learning rate 0.0002
+    save to "my-model.safetensors"
+
+evaluate base on test and show accuracy
+
+use python "numpy" as np
+let scores be np.mean(np.array([0.25, 0.5, 0.75]))

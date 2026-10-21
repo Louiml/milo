@@ -1,0 +1,27 @@
+# A tiny gradient-free illustration of Milo's numeric core.
+#
+# Everything here uses the explicit mode, which is the escape hatch for when
+# a sentence is not precise enough.
+
+fn mean(values: list) -> float:
+    let total = 0.0
+    for v in values:
+        total = total + v
+    return total / len(values)
+
+fn variance(values: list) -> float:
+    let m = mean(values)
+    let total = 0.0
+    for v in values:
+        let d = v - m
+        total = total + d * d
+    return total / len(values)
+
+fn standard_deviation(values: list) -> float:
+    return variance(values) ** 0.5
+
+let measurements = [12.0, 12.5, 11.8, 12.3, 12.9, 12.1]
+
+print "mean:            " + str(mean(measurements))
+print "variance:        " + str(variance(measurements))
+print "std deviation:   " + str(standard_deviation(measurements))

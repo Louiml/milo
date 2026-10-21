@@ -1,0 +1,20 @@
+# Running on a GPU.
+#
+# The backend is built when the machine has the CUDA toolkit. When it does
+# not, `gpu_info()` says so and the program carries on.
+
+let info = gpu_info()
+print "a GPU is available: " + str(info["available"])
+
+if info["available"]:
+    print info["name"]
+
+    let a = to_device(tensor([[1.0, 2.0], [3.0, 4.0]]), "cuda")
+    let b = to_device(tensor([[5.0, 6.0], [7.0, 8.0]]), "cuda")
+
+    print "the product, computed on the GPU:"
+    print to_device(matmul(a, b), "cpu")
+
+    # A tensor that lives on a GPU cannot be changed in place, so that a
+    # mistake cannot quietly corrupt a device's memory.
+    print "a is on: " + device(a)

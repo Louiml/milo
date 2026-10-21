@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base>
+  <section class="hero">
+    <p class="kicker">A programming language for AI and data work</p>
+    <h1>Describe the experiment.<br /><em>Watch it learn.</em></h1>
+    <p class="lede">
+      Milo is a language for building, training, and fine-tuning models. It
+      reads close to plain English where that is clear, and stays a fast,
+      statically analysable language underneath — with tensors, datasets, and
+      training loops as first-class features, not library afterthoughts.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="/guides/getting-started/">Get started</a>
+      <a class="button" href="/docs/spec/language-spec-v0.1/">Read the specification</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <article class="feature">
+      <span class="tag">Plain English</span>
+      <h3>Sentences that mean one thing</h3>
+      <p>
+        A sentence is a fixed template, not free-form prose. That is what
+        keeps the language unambiguous — and what lets a compiler check it.
+      </p>
+    </article>
+
+    <article class="feature">
+      <span class="tag">Tensors</span>
+      <h3>The tensor type is built in</h3>
+      <p>
+        Shapes, dtypes, broadcasting, and matrix products, with AVX2 and
+        NEON kernels chosen at run time. Copying a tensor copies the
+        handle, not the data.
+      </p>
+    </article>
+
+    <article class="feature">
+      <span class="tag">Differentiation</span>
+      <h3>Gradients you can check</h3>
+      <p>
+        Reverse-mode autograd, with every adjoint rule tested against finite
+        differences. A training loop is a loop.
+      </p>
+    </article>
+
+    <article class="feature">
+      <span class="tag">Models</span>
+      <h3>Safetensors, natively</h3>
+      <p>
+        Memory-mapped weights: opening a seventy-gigabyte checkpoint costs
+        nothing, and only the tensors you use become resident.
+      </p>
+    </article>
+
+    <article class="feature">
+      <span class="tag">Small cards</span>
+      <h3>Know what will fit</h3>
+      <p>
+        Quantisation, low-rank updates, and a planner that tells you what a
+        run will need — and what you could change. It never changes
+        anything itself.
+      </p>
+    </article>
+
+    <article class="feature">
+      <span class="tag">Interoperable</span>
+      <h3>A stable C ABI</h3>
+      <p>
+        The runtime is plain C at the boundary. Other languages, and the
+        package manager, link against that and nothing else.
+      </p>
+    </article>
+  </section>
+
+  <section class="hero" style="padding-top: 1rem">
+    <pre><code>{`load model "llama-3-8b.safetensors" as base
+load data "support_chats.csv" as chats
+
+split chats into train and test by 90 percent
+
+fine-tune base on train
+    using lora with rank 16
+    precision is bf16
+    batch size 4
+    epochs 3
+    learning rate 0.0002
+    save to "my-model.safetensors"
+
+evaluate base on test and show accuracy`}</code></pre>
+  </section>
+</Base>

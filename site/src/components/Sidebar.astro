@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+
+interface Props {
+  current?: string;
+}
+
+const { current } = Astro.props;
+
+const guides = (await getCollection('guides')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const reference = (await getCollection('reference')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
+const guideSections = new Map<string, typeof guides>();
+for (const guide of guides) {
+  const section = guide.data.section;
+  if (!guideSections.has(section)) guideSections.set(section, []);
+  guideSections.get(section)!.push(guide);
+}
+---
+
+<nav class="sidebar">
+  {
+    [...guideSections.entries()].map(([section, items]) => (
+      <section>
+        <h2>{section}</h2>
+        <ul>
+          {items.map((item) => (
+            <li>
+              <a
+                href={`/guides/${item.id}/`}
+                aria-current={current === item.id ? 'page' : undefined}
+              >
+                {item.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  <section>
+    <h2>Reference</h2>
+    <ul>
+      {
+        reference.map((item) => (
+          <li>
+            <a
+              href={`/docs/${item.id}/`}
+              aria-current={current === item.id ? 'page' : undefined}
+            >
+              {item.data.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</nav>

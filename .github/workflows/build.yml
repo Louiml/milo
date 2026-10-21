@@ -1,0 +1,57 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: linux (gcc, sanitizers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+          rustup toolchain install stable
+      - name: Build and test
+        run: python3 build.py --jobs 4
+
+  linux-release:
+    name: linux (release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get install -y ninja-build
+      - name: Build and test
+        run: python3 build.py --release --jobs 4
+
+  macos:
+    name: macos (clang)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: python3 build.py --jobs 4
+
+  windows:
+    name: windows (msvc, sanitizers)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: python build.py --jobs 4
+
+  rust:
+    name: rust (mpm)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test the Rust workspace
+        run: |
+          cargo build --workspace
+          cargo test --workspace

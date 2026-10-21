@@ -1,0 +1,19 @@
+a:
+tensor<f32>[3]
+[1, 2, 3]
+a + b:
+tensor<f32>[3]
+[5, 7, 9]
+a * b:
+tensor<f32>[3]
+[4, 10, 18]
+matmul:
+tensor<f32>[1, 1]
+[32]
+sum:
+32
+shape:
+[1, 1]
+dtype:
+f32
+

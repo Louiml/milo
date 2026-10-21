@@ -1,0 +1,53 @@
+# Build outputs
+/build/
+/build-*/
+/out/
+/cmake-build-*/
+/target/
+/tools/mpm/target/
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Artifacts
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+# The built binaries, at the root only.
+/milo
+/milo.exe
+/mpm
+/mpm.exe
+
+# Test / coverage
+*.gcda
+*.gcno
+*.gcov
+Testing/
+/milo-*.tar.gz
+.pytest_cache/
+/python/.pytest_cache/
+
+# Python bridge
+__pycache__/
+*.pyc
+*.pyd
+/milo/python/build/
+/milo/python/*.egg-info/
+
+# Cargo
+**/*.rs.bk
+Cargo.lock.orig

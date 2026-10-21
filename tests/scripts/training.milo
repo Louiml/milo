@@ -1,0 +1,25 @@
+seed(7)
+
+let model = linear(2, 1)
+let optimizer = sgd(model.parameters, 0.05)
+
+let inputs = tensor([[1.0, 1.0]])
+let targets = tensor([[2.0]])
+
+for step in range(40):
+    let prediction = model(inputs)
+    let loss = mse_loss(prediction, targets)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+# The exact loss depends on the floating point, so report it in a way that
+# does not: rounded to three decimal places.
+print "the loss is about " + str(round(loss * 1000.0) / 1000.0)
+
+if loss < 0.001:
+    print "the model converged"
+else:
+    print "the model did not converge"
+
+print "the optimiser took " + str(optimizer.step_count) + " steps"

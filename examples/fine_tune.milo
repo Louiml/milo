@@ -1,0 +1,24 @@
+# The plain-English style.
+#
+# Every line here is a "sentence": a fixed template that the compiler
+# matches and turns into an ordinary call. Run it with:
+#
+#     milo run examples/fine_tune.milo
+
+load model "llama-3-8b.safetensors" as base
+load data "support_chats.csv" as chats
+
+split chats into train and test by 90 percent
+
+fine-tune base on train
+    using lora with rank 16
+    precision is bf16
+    batch size 4
+    epochs 3
+    learning rate 0.0002
+    save to "my-model.safetensors"
+
+evaluate base on test and show accuracy
+
+use python "numpy" as np
+let scores be np.mean(base.predict(test))
