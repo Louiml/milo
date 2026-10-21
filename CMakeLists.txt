@@ -250,9 +250,22 @@ if(MILO_HAVE_PYTHON)
   # The extension module, so that Python can call Milo.
   add_library(milo_extension MODULE src/python/extension.cpp)
   target_include_directories(milo_extension PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+  # The static libraries have to be scanned more than once: the safetensors
+  # library needs the JSON reader, which lives in the core library, and the
+  # core library is listed first. GNU and Clang want a group for that;
+  # the Microsoft linker resolves across the whole command line and does
+  # not need one.
+  if(MSVC)
+    set(MILO_EXTENSION_LIBS
+      milo_python milo_abi milo_runtime milo_safetensors milo_autograd milo_core
+      milo_tensor milo_planner)
+  else()
+    set(MILO_EXTENSION_LIBS
+      $<LINK_GROUP:RESCAN,milo_python,milo_abi,milo_runtime,milo_safetensors,milo_autograd,milo_core,milo_tensor,milo_planner>)
+  endif()
   target_link_libraries(milo_extension PRIVATE
-    milo_python
-    milo_abi
+    ${MILO_EXTENSION_LIBS}
+    Python3::Python
     milo_sanitizers
     milo_warnings)
   # Python looks for `milo.cp312-win_amd64.pyd` on Windows and for
