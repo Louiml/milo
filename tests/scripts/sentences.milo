@@ -13,5 +13,5 @@ fine-tune base on train
 
 evaluate base on test and show accuracy
 
-use python "numpy" as np
-let scores be np.mean(np.array([0.25, 0.5, 0.75]))
+use python "math" as math
+let scores be math.sqrt(0.25)

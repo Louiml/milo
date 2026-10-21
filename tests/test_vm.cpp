@@ -185,7 +185,7 @@ TEST(theMachineAgreesWithTheEvaluatorOnSentences) {
   checkBothEnginesAgree("sentences",
                         "load data \"chats.csv\" as chats\n"
                         "split chats into train and test by 90 percent\n"
-                        "use python \"numpy\" as np\n"
+                        "use python \"math\" as math\n"
                         "print \"done\"\n");
 }
 

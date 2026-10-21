@@ -186,10 +186,10 @@ TEST(interpHandlesTheSentenceForms) {
       "    learning rate 0.0002\n"
       "    save to \"my-model.safetensors\"\n"
       "evaluate base on test and show accuracy\n"
-      "use python \"numpy\" as np\n"
-      "let scores be np.mean(np.array([0.25, 0.5, 0.75]))\n"
+      "use python \"math\" as math\n"
+      "let scores be math.sqrt(0.25)\n"
       "scores\n";
-  // NumPy ran for real: the mean of that list is 0.5.
+  // Python ran for real: the square root of a quarter is a half.
   CHECK_NEAR(run(program).asFloat(), 0.5, 1e-6);
 }
 

@@ -651,10 +651,14 @@ runtime::Value Context::fromPython(void* object) {
         owner->object = value;
         Py_INCREF(value);
 
+        // The storage keeps the owner alive. The pointer it is given is
+        // never used — the owner is what matters.
+        auto held = std::shared_ptr<void>(owner.get(), [owner](void*) {});
+
         auto owned = std::shared_ptr<tensor::Storage>(
             tensor::Storage::wrap(static_cast<const std::byte*>(view.buf),
                                   static_cast<std::size_t>(view.len), tensor::Device::Cpu,
-                                  std::shared_ptr<void>(owner, [](void*) {})));
+                                  std::move(held)));
 
         tensor::Tensor tensor = tensor::Tensor::view(
             owned, dtype, tensor::Shape(shape),
