@@ -2,6 +2,7 @@
 
 #include <Python.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -138,6 +139,54 @@ bool typeFromBufferFormat(const char* format, tensor::DType& out) {
 // The context
 // ---------------------------------------------------------------------------
 
+namespace {
+
+/// The thread state a caller gave up, if it gave one up.
+///
+/// A non-null value means the lock is not held by this thread. The bridge
+/// needs the state to take the lock again without building a second thread
+/// state for the same thread, which Python does not allow.
+thread_local PyThreadState* g_savedThreadState = nullptr;
+
+/// Does this thread hold Python's lock?
+///
+/// The bridge takes the lock and gives it back, and the two have to match
+/// up: a call inside a call must not take the lock twice.
+thread_local bool g_lockHeld = true;
+
+/// Hold Python's lock while Milo talks to Python.
+///
+/// Milo may run without the lock — a program started from Python gives it
+/// up so that other threads keep running — and take it again when it needs
+/// Python.
+class GilGuard {
+ public:
+  GilGuard() {
+    if (!g_lockHeld && g_savedThreadState != nullptr) {
+      // The lock was given up: take it back with the state that was saved.
+      PyEval_RestoreThread(g_savedThreadState);
+      g_lockHeld = true;
+      restored_ = true;
+    }
+  }
+
+  ~GilGuard() {
+    if (restored_) {
+      // Give the lock back, but keep the state for next time.
+      PyEval_SaveThread();
+      g_lockHeld = false;
+    }
+  }
+
+  GilGuard(const GilGuard&) = delete;
+  GilGuard& operator=(const GilGuard&) = delete;
+
+ private:
+  bool restored_ = false;
+};
+
+}  // namespace
+
 struct Context::Impl {
   /// The interpreter state, when it is a sub-interpreter.
   PyInterpreterState* interpreter = nullptr;
@@ -164,6 +213,27 @@ struct Context::Impl {
   }
 };
 
+namespace {
+
+/// Shut the interpreter down when the process ends.
+///
+/// The bridge starts Python the first time a program asks for it, and the
+/// interpreter is then shared by every context in the process. It is shut
+/// down once, at the end, so that Python's interned strings and its module
+/// cache are given back. Doing it here rather than in the destructor
+/// matters: a program that runs many times would otherwise start and stop
+/// Python over and over.
+void finalizeAtExit() {
+  std::atexit([] {
+    if (!Py_IsInitialized()) return;
+    PyGILState_STATE state = PyGILState_Ensure();
+    Py_FinalizeEx();
+    PyGILState_Release(state);
+  });
+}
+
+}  // namespace
+
 Context::Context() : impl_(std::make_unique<Impl>()) {
   if (!isAvailable()) {
     throw std::runtime_error("there is no Python in this build");
@@ -172,6 +242,7 @@ Context::Context() : impl_(std::make_unique<Impl>()) {
   if (!Py_IsInitialized()) {
     Py_InitializeEx(0);
     impl_->ownsInterpreter = true;
+    finalizeAtExit();
   }
   impl_->started = true;
 
@@ -252,50 +323,6 @@ const std::string& Context::description() const { return impl_->description; }
 std::string Context::lastError() const { return impl_->error; }
 
 namespace {
-
-/// The thread state a caller gave up, if it gave one up.
-///
-/// A non-null value means the lock is not held by this thread. The bridge
-/// needs the state to take the lock again without building a second thread
-/// state for the same thread, which Python does not allow.
-thread_local PyThreadState* g_savedThreadState = nullptr;
-
-/// Does this thread hold Python's lock?
-///
-/// The bridge takes the lock and gives it back, and the two have to match
-/// up: a call inside a call must not take the lock twice.
-thread_local bool g_lockHeld = true;
-
-/// Hold Python's lock while Milo talks to Python.
-///
-/// Milo may run without the lock — a program started from Python gives it
-/// up so that other threads keep running — and take it again when it needs
-/// Python.
-class GilGuard {
- public:
-  GilGuard() {
-    if (!g_lockHeld && g_savedThreadState != nullptr) {
-      // The lock was given up: take it back with the state that was saved.
-      PyEval_RestoreThread(g_savedThreadState);
-      g_lockHeld = true;
-      restored_ = true;
-    }
-  }
-
-  ~GilGuard() {
-    if (restored_) {
-      // Give the lock back, but keep the state for next time.
-      PyEval_SaveThread();
-      g_lockHeld = false;
-    }
-  }
-
-  GilGuard(const GilGuard&) = delete;
-  GilGuard& operator=(const GilGuard&) = delete;
-
- private:
-  bool restored_ = false;
-};
 
 /// Fetch the Python error, with its traceback, as text.
 std::string fetchError() {
