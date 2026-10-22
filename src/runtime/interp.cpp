@@ -319,7 +319,7 @@ void Interpreter::execLet(const ast::LetStmt& node,
   if (node.has_value) {
     value = eval(*node.value, env);
   }
-  env->define(node.name, std::move(value));
+  env->defineFunction(node.name, std::move(value));
 }
 
 void Interpreter::execAssign(const ast::AssignStmt& node,
@@ -582,7 +582,11 @@ Value Interpreter::call(Value callee, const std::vector<Value>& args,
     }
     const auto& function = callee.asFunction();
 
-    auto scope = std::make_shared<runtime::Environment>(function->closure.lock());
+    // The scope this call runs in sits in the scope the function was
+    // written in. That scope is held weakly, so the call holds on to it
+    // for as long as the call lasts.
+    auto parent = function->closure.lock();
+    auto scope = std::make_shared<runtime::Environment>(parent);
     for (std::size_t i = 0; i < function->params.size(); ++i) {
       if (i < args.size()) {
         scope->define(function->params[i], args[i]);

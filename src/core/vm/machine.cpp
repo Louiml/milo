@@ -427,7 +427,11 @@ void Machine::enterFunction(const std::shared_ptr<Function>& function,
   }
 
   Frame frame;
-  frame.env = std::make_shared<runtime::Environment>(function->closure.lock());
+  // The scope this call runs in sits in the scope the function was
+  // written in. That scope is held weakly, so the frame holds on to it
+  // for as long as the call lasts.
+  frame.parent = function->closure.lock();
+  frame.env = std::make_shared<runtime::Environment>(frame.parent);
   for (std::size_t i = 0; i < function->params.size() && i < args.size(); ++i) {
     frame.env->define(function->params[i], args[i]);
   }

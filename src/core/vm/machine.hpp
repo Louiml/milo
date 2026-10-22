@@ -26,6 +26,11 @@ class Machine {
   struct Frame {
     /// The scope the code in this frame runs in.
     std::shared_ptr<runtime::Environment> env;
+    /// The scope the function was written in.
+    ///
+    /// The scope chain is held weakly, so the frame holds on to the scope
+    /// it sits in for as long as the frame lives.
+    std::shared_ptr<runtime::Environment> parent;
     /// Where the operand stack starts.
     std::size_t stackBase = 0;
     /// The instruction to carry on with when the frame returns.

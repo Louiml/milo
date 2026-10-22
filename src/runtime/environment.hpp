@@ -21,7 +21,18 @@ class Environment {
   explicit Environment(std::shared_ptr<Environment> parent = nullptr)
       : parent_(std::move(parent)) {}
 
-  const std::shared_ptr<Environment>& parent() const { return parent_; }
+  /// The scope this one sits in.
+  ///
+  /// This is a weak reference, and it has to be. A function closes over
+  /// the scope it was written in, and a scope holds the functions written
+  /// in it. With strong references on both sides, a scope that holds a
+  /// function that was returned out of it would keep that function's scope
+  /// alive, and that scope keeps the global scope alive, and the global
+  /// scope keeps the function: the three would hold each other for ever.
+  ///
+  /// A scope that is in use keeps its own parent alive: the call that
+  /// made it holds a reference for as long as the call lasts.
+  std::shared_ptr<Environment> parent() const { return parent_.lock(); }
 
   /// Find a name, or nullptr when it is not bound anywhere.
   const Value* find(const std::string& name) const;
@@ -31,6 +42,13 @@ class Environment {
 
   /// Declare a name in this scope, replacing any existing binding.
   void define(const std::string& name, Value value);
+
+  /// Declare a name in this scope, for a value that is a function.
+  ///
+  /// A function that is stored here but was written somewhere else takes
+  /// that scope with it, and the scope lets go of the function, so that
+  /// the two do not hold each other up for ever.
+  void defineFunction(const std::string& name, Value value);
 
   /// Assign to an existing name, walking outwards. Returns false when the
   /// name is not bound anywhere.
@@ -71,7 +89,8 @@ class Environment {
   void release(const std::string& name) { values_.erase(name); }
 
  private:
-  std::shared_ptr<Environment> parent_;
+  /// The scope this one sits in.
+  std::weak_ptr<Environment> parent_;
   std::unordered_map<std::string, Value> values_;
   bool allow_redeclaration_ = false;
 };
